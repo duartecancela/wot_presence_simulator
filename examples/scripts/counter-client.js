@@ -26,7 +26,7 @@ function getFormIndexForDecrementWithCoAP(thing) {
     return 0;
 }
 
-WoT.requestThingDescription("http://localhost:8080/counter")
+WoT.requestThingDescription("coap://localhost:5683/counter")
     .then(async (td) => {
         try {
             const thing = await WoT.consume(td);
@@ -55,10 +55,21 @@ WoT.requestThingDescription("http://localhost:8080/counter")
             const dec1 = await thing.readProperty("count");
             console.info("count value after decrement is", await dec1.value());
 
-            // === ADDED: Observe presenceCount (CLI-compatible) ===
+            // === ADDED: trigger presence simulation ===
+            await thing.invokeAction("startPresenceSimulation");
+            console.info("Requested start of presence simulation.");
+
+            // === ADDED: observe presenceCount once then exit ===
             thing.observeProperty("presenceCount", async (data) => {
                 console.log(`[Property] Simulated presence count updated: ${await data.value()}`);
+                process.exit(0); // terminate like original
             });
+
+            // fallback timeout to avoid hanging forever
+            setTimeout(() => {
+                console.warn("No update received from presenceCount. Exiting...");
+                process.exit(0);
+            }, 5000);
         } catch (err) {
             console.error("Script error:", err);
         }
