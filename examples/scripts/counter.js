@@ -13,17 +13,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-// This is an example Thing script.
-// It has a count property that can be incremented or decremented via actions and its changes are reported via events.
-// It also has two properties that return an image. The SVG property is also influenced by the increment and decrement actions.
-// Features
-// * basic properties, actions, events
-// * local/global uriVariables
-// * multi-language
-// * image contentTypes for properties (Note: the contentType applies to all forms of the property)
-// * links with entry containing rel and sizes
 let count;
 let lastChange;
+// === ADDED: declare variable to store simulated presence counter ===
+let presenceCount = 0;
+
 WoT.produce({
     title: "Counter",
     titles: {
@@ -130,6 +124,14 @@ WoT.produce({
             observable: true,
             readOnly: true,
         },
+        // === ADDED: Expose presenceCount as a property ===
+        presenceCount: {
+            title: "Presence Count",
+            type: "integer",
+            description: "Number of simulated people that passed by",
+            observable: true,
+            readOnly: true,
+        },
     },
     actions: {
         increment: {
@@ -197,6 +199,7 @@ WoT.produce({
         // init property values
         count = 0;
         lastChange = new Date().toISOString();
+
         // set property handlers (using async-await)
         thing.setPropertyReadHandler("count", async () => count);
         thing.setPropertyReadHandler("lastChange", async () => lastChange);
@@ -224,7 +227,9 @@ WoT.produce({
             async () =>
                 "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
         );
-        // set action handlers (using async-await)
+        thing.setPropertyReadHandler("presenceCount", async () => presenceCount); // ADDED
+
+        // set action handlers
         thing.setActionHandler("increment", async (params, options) => {
             let step = 1;
             if (options && typeof options === "object" && "uriVariables" in options) {
@@ -267,8 +272,17 @@ WoT.produce({
             thing.emitPropertyChange("count");
             return undefined;
         });
+
         // expose the thing
         thing.expose().then(() => {
+            // === ADDED: simulate people passing every 5s ===
+            setInterval(() => {
+                const added = Math.floor(Math.random() * 3) + 1;
+                presenceCount += added;
+                console.log(`[Presence Simulator] Detected ${added} new people. Total: ${presenceCount}`);
+                thing.emitPropertyChange("presenceCount");
+            }, 5000);
+
             console.info(thing.getThingDescription().title + " ready");
         });
     })
