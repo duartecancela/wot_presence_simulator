@@ -1,0 +1,11 @@
+
+
+## 📝 Explicação do contador de presenças
+
+Neste projeto, mantive o ficheiro original `counter.js` da framework Node-WoT, que implementa uma Thing com um contador manipulável através de ações (`increment`, `decrement`, `reset`) e propriedades (`count`, `lastChange`, entre outras).
+
+Como extensão, adicionei uma nova **propriedade observável** chamada `presenceCount`, que simula a contagem de presenças humanas num espaço (como uma sala ou biblioteca). Esta propriedade é `readOnly` e pode ser **observada por clientes WoT**, o que significa que os clientes são automaticamente notificados sempre que o seu valor muda.
+
+A simulação é ativada por uma nova **ação WoT** chamada `startPresenceSimulation`. Quando esta ação é invocada por um cliente, o servidor inicia um processo que, a cada 5 segundos, incrementa aleatoriamente o valor de `presenceCount` (entre 1 e 3). A cada alteração, a propriedade é atualizada e emitida, permitindo ao cliente acompanhar as mudanças em tempo real.
+
+Toda a lógica respeita o modelo da Web of Things (WoT) definido pelo W3C, com separação clara entre propriedades, ações e eventos, mantendo também a compatibilidade total com o código e comportamento original.
